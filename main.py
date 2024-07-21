@@ -16,6 +16,11 @@ async def get_captions(video_id: str):
         else:
             raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
+@app.get("/")
+async def default_route():
+    return "API is working"
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
