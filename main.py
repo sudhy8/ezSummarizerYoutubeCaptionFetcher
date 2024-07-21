@@ -1,3 +1,19 @@
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    import fastapi
+except ImportError:
+    install("fastapi")
+
+try:
+    import youtube_transcript_api
+except ImportError:
+    install("youtube_transcript_api")
+
 from fastapi import FastAPI, HTTPException
 from youtube_transcript_api import YouTubeTranscriptApi
 
@@ -19,7 +35,6 @@ async def get_captions(video_id: str):
 @app.get("/")
 async def default_route():
     return "API is working"
-
 
 if __name__ == "__main__":
     import uvicorn
