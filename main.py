@@ -1,12 +1,19 @@
-import os
-import tempfile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from youtube_transcript_api import YouTubeTranscriptApi
+from fastapi.middleware.cors import CORSMiddleware
 import yt_dlp
 import shutil
 import glob
 app = FastAPI()
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 @app.get("/content/{video_id}")
 async def get_content(video_id: str):
