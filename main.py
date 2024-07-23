@@ -20,38 +20,38 @@ async def get_content(video_id: str):
             pass
 
         # Configure yt-dlp options
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'outtmpl': '%(id)s.%(ext)s',
-        }
+        # ydl_opts = {
+        #     'format': 'bestaudio/best',
+        #     'postprocessors': [{
+        #         'key': 'FFmpegExtractAudio',
+        #         'preferredcodec': 'mp3',
+        #         'preferredquality': '192',
+        #     }],
+        #     'outtmpl': '%(id)s.%(ext)s',
+        # }
 
-        # Create a temporary directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Set the output template to use the temporary directory
-            ydl_opts['outtmpl'] = os.path.join(temp_dir, '%(id)s.%(ext)s')
+        # # Create a temporary directory
+        # with tempfile.TemporaryDirectory() as temp_dir:
+        #     # Set the output template to use the temporary directory
+        #     ydl_opts['outtmpl'] = os.path.join(temp_dir, '%(id)s.%(ext)s')
 
-            # Download the audio
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
+        #     # Download the audio
+        #     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        #         ydl.download([f'https://www.youtube.com/watch?v={video_id}'])
 
-            # Find the downloaded file
-            for file in os.listdir(temp_dir):
-                if file.startswith(video_id):
-                    src_path = os.path.join(temp_dir, file)
-                    dest_path = os.path.join(os.getcwd(), f"{video_id}.mp3")
-                    shutil.copy2(src_path, dest_path)
+        #     # Find the downloaded file
+        #     for file in os.listdir(temp_dir):
+        #         if file.startswith(video_id):
+        #             src_path = os.path.join(temp_dir, file)
+        #             dest_path = os.path.join(os.getcwd(), f"{video_id}.mp3")
+        #             shutil.copy2(src_path, dest_path)
                     
-                    return FileResponse(
-                        dest_path,
-                        media_type="audio/mpeg",
-                        filename=f"{video_id}.mp3",
-                        headers={"X-Content-Type": "audio"}
-                    )
+        #             return FileResponse(
+        #                 dest_path,
+        #                 media_type="audio/mpeg",
+        #                 filename=f"{video_id}.mp3",
+        #                 headers={"X-Content-Type": "audio"}
+        #             )
 
         raise Exception("Audio file not found after download")
 
