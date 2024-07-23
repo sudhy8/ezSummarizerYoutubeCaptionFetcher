@@ -6,6 +6,11 @@
             "use": "@vercel/python"
         }
     ],
+    "build": {
+        "env": {
+            "PATH": "/usr/local/bin:$PATH"
+        }
+    },
     "routes": [
         {
             "src": "/(.*)",
