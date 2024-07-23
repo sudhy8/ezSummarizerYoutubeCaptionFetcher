@@ -21,12 +21,12 @@ app.add_middleware(
 async def get_content(video_id: str):
     try:
         # Try to get captions
-        try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            return JSONResponse(content={"captions": transcript})
-        except Exception as caption_error:
-            # If captions are not available, proceed to audio download
-            pass
+        # try:
+        #     transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        #     return JSONResponse(content={"captions": transcript})
+        # except Exception as caption_error:
+        #     # If captions are not available, proceed to audio download
+        #     pass
 
         # Configure yt-dlp options
         ydl_opts = {
@@ -54,7 +54,7 @@ async def get_content(video_id: str):
                     src_path = os.path.join(temp_dir, file)
                     dest_path = os.path.join(os.getcwd(), f"{video_id}.mp3")
                     shutil.copy2(src_path, dest_path)
-                    
+
                     return FileResponse(
                         dest_path,
                         media_type="audio/mpeg",
