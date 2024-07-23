@@ -3,37 +3,21 @@ import tempfile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from youtube_transcript_api import YouTubeTranscriptApi
-from fastapi.middleware.cors import CORSMiddleware
-
-
-
-
-from tempfile import TemporaryDirectory
-
-
 import yt_dlp
 import shutil
 import glob
 app = FastAPI()
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-)
 
 @app.get("/content/{video_id}")
 async def get_content(video_id: str):
     try:
         # Try to get captions
-        # try:
-        #     transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        #     return JSONResponse(content={"captions": transcript})
-        # except Exception as caption_error:
-        #     # If captions are not available, proceed to audio download
-        #     pass
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            return JSONResponse(content={"captions": transcript})
+        except Exception as caption_error:
+            # If captions are not available, proceed to audio download
+            pass
 
         # Configure yt-dlp options
         ydl_opts = {
@@ -61,7 +45,7 @@ async def get_content(video_id: str):
                     src_path = os.path.join(temp_dir, file)
                     dest_path = os.path.join(os.getcwd(), f"{video_id}.mp3")
                     shutil.copy2(src_path, dest_path)
-
+                    
                     return FileResponse(
                         dest_path,
                         media_type="audio/mpeg",
