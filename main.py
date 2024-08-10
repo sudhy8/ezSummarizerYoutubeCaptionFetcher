@@ -73,65 +73,49 @@
 #     return {"message": "Welcome to the YouTube Content API"}
 
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import requests
-from xml.etree import ElementTree
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse
+import yt_dlp
+import os
 
 app = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust this list to specify allowed origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-def fetch_youtube_captions(video_id, language='en', proxies=None):
-    url = f"https://www.youtube.com/api/timedtext?lang={language}&v={video_id}"
-    response = requests.get(url, proxies=proxies)
-    
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Failed to retrieve captions")
-    
-    root = ElementTree.fromstring(response.content)
-    captions = []
-    
-    for elem in root.findall('text'):
-        start = elem.attrib['start']
-        duration = elem.attrib.get('dur', '0')
-        text = elem.text or ''
-        captions.append({'start': start, 'duration': duration, 'text': text})
-    
-    return captions
-
-@app.get("/content/{video_id}")
-async def get_captions(video_id: str, language: str = 'en'):
+def download_audio(youtube_url: str, output_path: str):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': output_path,
+        'quiet': True  # Enable logging for debugging
+    }
     try:
-        # Example proxy setup (replace with actual proxy details if needed)
-
-        proxies = {
-            '45.127.248.127:5128:mfzzfgkn:dla1mef5pjk0'
-'64.64.118.149:6732:mfzzfgkn:dla1mef5pjk0'
-'157.52.253.244:6204:mfzzfgkn:dla1mef5pjk0'
-'167.160.180.203:6754:mfzzfgkn:dla1mef5pjk0'
-'166.88.58.10:5735:mfzzfgkn:dla1mef5pjk0'
-'173.0.9.70:5653:mfzzfgkn:dla1mef5pjk0'
-'45.151.162.198:6600:mfzzfgkn:dla1mef5pjk0'
-'204.44.69.89:6342:mfzzfgkn:dla1mef5pjk0'
-'173.0.9.209:5792:mfzzfgkn:dla1mef5pjk0'
-'206.41.172.74:6634:mfzzfgkn:dla1mef5pjk0'
-
-        }
-        
-        captions = fetch_youtube_captions(video_id, language, proxies=None)  # Set proxies=None if not using a proxy
-        return {"video_id": video_id, "captions": captions}
-    
-    except HTTPException as e:
-        raise e
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_url])
+        if not os.path.exists(output_path):
+            raise FileNotFoundError(f"File not found after download: {output_path}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error downloading audio: {str(e)}")
 
-# To run the app, use the command: uvicorn script_name:app --reload
+@app.get("/download_audio/")
+async def download_audio_endpoint(url: str = Query(..., description="YouTube video URL")):
+    try:
+        output_path = "audio.mp3"
+        try:
+            download_audio(url, output_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Downloaded : {str(e)}")
+        try:
+            print("--------------")
+            return FileResponse(output_path+'.mp3', media_type='audio/mpeg', filename="audio.mp3.mp3")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unexpected file downloaderror: {str(e)}")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    finally:
+        return FileResponse(output_path+'.mp3', media_type='audio/mpeg', filename="audio.mp3.mp3")
+        if os.path.exists(output_path):
+            os.remove(output_path)  # Clean up the downloaded file
