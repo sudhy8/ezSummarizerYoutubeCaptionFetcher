@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import yt_dlp
 import shutil
 import glob
+import os
 app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
