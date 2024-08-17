@@ -81,17 +81,19 @@ import os
 app = FastAPI()
 
 def download_audio(youtube_url: str, output_path: str):
+    # Define the options for downloading the audio
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio/best', # Download the best available audio quality
         'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
+            'key': 'FFmpegExtractAudio', # Extract audio using FFmpeg
+            'preferredcodec': 'mp3', # Convert the audio to mp3 format
+            'preferredquality': '192', # Set the audio quality to 192 kbps
         }],
         'outtmpl': output_path,
         'quiet': True  # Enable logging for debugging
     }
     try:
+        # Use yt-dlp to download the audio from the provided YouTube URL
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([youtube_url])
         if not os.path.exists(output_path):
